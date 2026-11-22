@@ -39,6 +39,20 @@ func FormatTokens(n int64) string {
 	}
 }
 
+func FormatUSD(usd *float64) string {
+	if usd == nil {
+		return "—"
+	}
+	v := *usd
+	if v == 0 {
+		return "$0.00"
+	}
+	if v < 0.01 {
+		return fmt.Sprintf("$%.4f", v)
+	}
+	return fmt.Sprintf("$%.2f", v)
+}
+
 func CompactQuotaSummary(q *QuotaPayload) string {
 	if q == nil || len(q.Windows) == 0 {
 		return ""

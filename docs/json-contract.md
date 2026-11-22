@@ -94,17 +94,38 @@ All machine-readable commands (`status --json`, `list --json`, `switch --json`, 
   "schemaVersion": 1,
   "generatedAt": "2026-11-22T05:00:00Z",
   "days": 7,
+  "timezone": "CST",
+  "pricing": {
+    "source": "cached",
+    "modelCount": 221,
+    "updatedAt": "2026-11-22T04:55:00Z"
+  },
+  "totals": {
+    "requests": 120,
+    "inputTokens": 210000,
+    "outputTokens": 85000,
+    "cacheReadTokens": 45000000,
+    "estimatedCostUSD": 11.42
+  },
   "providers": [
     {
       "provider": "claude",
-      "totalRequests": 5353,
-      "totalInputTokens": 5580000,
-      "totalOutputTokens": 5440000,
-      "totalCacheReadTokens": 1625230000,
+      "totals": {
+        "requests": 120,
+        "inputTokens": 210000,
+        "outputTokens": 85000,
+        "cacheReadTokens": 45000000,
+        "estimatedCostUSD": 11.42
+      },
+      "models": [
+        {"model": "claude-opus-5-5", "requests": 120, "inputTokens": 210000, "outputTokens": 85000, "cacheReadTokens": 45000000, "estimatedCostUSD": 11.42}
+      ],
       "daily": [
-        {"date": "2026-11-22", "requests": 120, "inputTokens": 210000, "outputTokens": 85000, "cacheReadTokens": 45000000}
+        {"date": "2026-11-22", "requests": 120, "inputTokens": 210000, "outputTokens": 85000, "cacheReadTokens": 45000000, "estimatedCostUSD": 11.42}
       ]
     }
   ]
 }
 ```
+
+`estimatedCostUSD` is omitted when no pricing rate matches the model (e.g. `unknown`), and rounded to 6 decimal places when present.

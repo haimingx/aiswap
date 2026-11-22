@@ -40,6 +40,11 @@ type statsLoadedMsg struct {
 	resp *contract.StatsResponse
 }
 
+type pricingRefreshedMsg struct {
+	count int
+	err   error
+}
+
 type modelsLoadedMsg struct {
 	resp *contract.ModelsResponse
 	err  error
@@ -59,10 +64,11 @@ type Model struct {
 	collector *analytics.Collector
 	version   string
 
-	tab           tabID
-	watchMode     bool
-	statsDays     int
-	cursor        int
+	tab            tabID
+	watchMode      bool
+	statsDays      int
+	statsBreakdown bool
+	cursor         int
 	scrollOffset  int
 	width         int
 	height        int
@@ -92,9 +98,10 @@ func NewModel(mgr *engine.Manager, collector *analytics.Collector, opts Options)
 		collector:  collector,
 		version:    opts.Version,
 		tab:        tabAll,
-		watchMode:  opts.WatchMode,
-		statsDays:  7,
-		width:      100,
+		watchMode:      opts.WatchMode,
+		statsDays:      7,
+		statsBreakdown: true,
+		width:          100,
 		height:     32,
 		loading:    true,
 		nextPollIn: pollIntervalSecs,
@@ -175,6 +182,22 @@ func (m Model) fetchStatsCmd(days int) tea.Cmd {
 			return statsLoadedMsg{}
 		}
 		return statsLoadedMsg{resp: col.Collect(days)}
+	}
+}
+
+func (m Model) refreshPricingCmd() tea.Cmd {
+	col := m.collector
+	return func() tea.Msg {
+		if col == nil {
+			return pricingRefreshedMsg{err: fmt.Errorf("analytics collector unavailable")}
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+		defer cancel()
+		book, err := col.RefreshPricing(ctx)
+		if err != nil {
+			return pricingRefreshedMsg{err: err}
+		}
+		return pricingRefreshedMsg{count: book.Count()}
 	}
 }
 
@@ -322,6 +345,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	case pricingRefreshedMsg:
+		if msg.err != nil {
+			return m, m.setNotice(msg.err.Error(), true)
+		}
+		return m, tea.Batch(
+			m.setNotice(fmt.Sprintf("Updated pricing table (%d models)", msg.count), false),
+			m.fetchStatsCmd(m.statsDays),
+		)
+
 	case modelsLoadedMsg:
 		m.modelsLoading = false
 		if msg.err != nil {
@@ -449,10 +481,19 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			}
 		}
 	case "b":
+		if m.tab == tabStats {
+			m.statsBreakdown = !m.statsBreakdown
+			m.scrollOffset = 0
+			return m, nil
+		}
 		if m.isAccountTab() {
 			if t, ok := m.selectedTarget(); ok {
 				return m, m.switchCmd(t.Provider, "best")
 			}
+		}
+	case "p":
+		if m.tab == tabStats {
+			return m, tea.Batch(m.setNotice("Refreshing online pricing table…", false), m.refreshPricingCmd())
 		}
 	case "r":
 		if m.tab == tabModels {
@@ -684,7 +725,7 @@ func (m Model) View() string {
 	var helpText string
 	switch m.tab {
 	case tabStats:
-		helpText = "j/k: scroll  d: 7d/30d  r: refresh  1-6/Tab: views  q: quit"
+		helpText = "j/k: scroll  d: 7d/30d  b: models  p: pricing  r: refresh  1-6/Tab: views  q: quit"
 	case tabModels:
 		helpText = "j/k: scroll  r: refresh  1-6/Tab: views  q: quit"
 	default:

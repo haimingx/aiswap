@@ -51,8 +51,11 @@ func TestModelNavigationWideLayoutAndInlineAlias(t *testing.T) {
 	m.stats = &contract.StatsResponse{
 		SchemaVersion: contract.SchemaVersion,
 		Days:          7,
+		Timezone:      "UTC",
+		Pricing:       contract.PricingInfo{Source: "builtin", ModelCount: 10},
+		Totals:        contract.TokenUsage{Requests: 100, InputTokens: 2_500_000, OutputTokens: 500_000},
 		Providers: []contract.ProviderStats{
-			{Provider: domain.ProviderClaude, TotalRequests: 100, TotalInputTokens: 2_500_000, TotalOutputTokens: 500_000},
+			{Provider: domain.ProviderClaude, Totals: contract.TokenUsage{Requests: 100, InputTokens: 2_500_000, OutputTokens: 500_000}},
 		},
 	}
 

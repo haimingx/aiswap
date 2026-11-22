@@ -82,10 +82,18 @@ func run(args []string) int {
 		return runCompletion(rest)
 	case "stats":
 		days := 7
+		breakdown := false
+		refreshPricing := false
 		for i := 0; i < len(rest); i++ {
 			arg := rest[i]
 			var rawVal string
 			switch {
+			case arg == "--breakdown" || arg == "-b":
+				breakdown = true
+				continue
+			case arg == "--refresh-pricing":
+				refreshPricing = true
+				continue
 			case arg == "--days":
 				if i+1 >= len(rest) {
 					return fail(jsonOut, "usage", errors.New("missing value for --days"))
@@ -103,12 +111,24 @@ func run(args []string) int {
 			}
 			days = n
 		}
-		resp := analytics.NewCollector().Collect(days)
+		col := analytics.NewCollector()
+		if refreshPricing {
+			pctx, pcancel := context.WithTimeout(context.Background(), 15*time.Second)
+			book, err := col.RefreshPricing(pctx)
+			pcancel()
+			if err != nil {
+				return fail(jsonOut, "pricing_error", err)
+			}
+			if !jsonOut {
+				fmt.Fprintf(os.Stderr, "Updated pricing cache (%d models)\n", book.Count())
+			}
+		}
+		resp := col.Collect(days)
 		if jsonOut {
 			_ = contract.WriteJSON(os.Stdout, resp)
 			return 0
 		}
-		printStats(resp)
+		printStats(resp, breakdown)
 		return 0
 	}
 
@@ -436,20 +456,63 @@ func printModels(resp *contract.ModelsResponse) {
 	_ = w.Flush()
 }
 
-func printStats(resp *contract.StatsResponse) {
-	fmt.Printf("Local usage stats (last %d days)\n\n", resp.Days)
+func printStats(resp *contract.StatsResponse, breakdown bool) {
+	meta := fmt.Sprintf("last %d days", resp.Days)
+	if resp.Timezone != "" {
+		meta += " · " + resp.Timezone
+	}
+	if resp.Pricing.Source != "" {
+		meta += " · pricing: " + resp.Pricing.Source
+	}
+	fmt.Printf("Local usage stats (%s)\n\n", meta)
+
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(w, "PROVIDER\tREQUESTS\tINPUT\tOUTPUT\tCACHE READ")
+	fmt.Fprintln(w, "PROVIDER\tREQUESTS\tINPUT\tOUTPUT\tCACHE READ\tEST. COST")
 	for _, ps := range resp.Providers {
-		fmt.Fprintf(w, "%s\t%d\t%s\t%s\t%s\n",
+		t := ps.Totals
+		fmt.Fprintf(w, "%s\t%d\t%s\t%s\t%s\t%s\n",
 			strings.ToUpper(string(ps.Provider)),
-			ps.TotalRequests,
-			contract.FormatTokens(ps.TotalInputTokens),
-			contract.FormatTokens(ps.TotalOutputTokens),
-			contract.FormatTokens(ps.TotalCacheReadTokens),
+			t.Requests,
+			contract.FormatTokens(t.InputTokens),
+			contract.FormatTokens(t.OutputTokens),
+			contract.FormatTokens(t.CacheReadTokens),
+			contract.FormatUSD(t.EstimatedCostUSD),
+		)
+	}
+	if resp.Totals.Requests > 0 {
+		t := resp.Totals
+		fmt.Fprintf(w, "TOTAL\t%d\t%s\t%s\t%s\t%s\n",
+			t.Requests,
+			contract.FormatTokens(t.InputTokens),
+			contract.FormatTokens(t.OutputTokens),
+			contract.FormatTokens(t.CacheReadTokens),
+			contract.FormatUSD(t.EstimatedCostUSD),
 		)
 	}
 	_ = w.Flush()
+
+	if !breakdown {
+		return
+	}
+	for _, ps := range resp.Providers {
+		if len(ps.Models) == 0 {
+			continue
+		}
+		fmt.Printf("\n[%s] Models\n", strings.ToUpper(string(ps.Provider)))
+		mw := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+		fmt.Fprintln(mw, "  MODEL\tREQUESTS\tINPUT\tOUTPUT\tCACHE READ\tEST. COST")
+		for _, m := range ps.Models {
+			fmt.Fprintf(mw, "  %s\t%d\t%s\t%s\t%s\t%s\n",
+				m.Model,
+				m.Requests,
+				contract.FormatTokens(m.InputTokens),
+				contract.FormatTokens(m.OutputTokens),
+				contract.FormatTokens(m.CacheReadTokens),
+				contract.FormatUSD(m.EstimatedCostUSD),
+			)
+		}
+		_ = mw.Flush()
+	}
 }
 
 func fail(jsonOut bool, code string, err error) int {
@@ -580,7 +643,7 @@ Usage:
   aiswap alias      <claude|codex|agy> <slot|email> <alias|--unset>
   aiswap disable    <claude|codex|agy> <slot|alias|email>
   aiswap enable     <claude|codex|agy> <slot|alias|email>
-  aiswap stats      [--days 7] [--json]
+  aiswap stats      [--days 7] [--breakdown|-b] [--refresh-pricing] [--json]
   aiswap doctor
   aiswap upgrade    [--check]
   aiswap completion <zsh|bash|fish>

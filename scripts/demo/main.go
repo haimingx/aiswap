@@ -254,7 +254,7 @@ func main() {
 	seed(agyProv, []string{"me@gmail.com"})
 
 	collector := seedDemoAnalytics(filepath.Join(tmpDir, "logs"))
-	if err := tui.Run(mgr, collector, tui.Options{Version: "v1.0.9"}); err != nil {
+	if err := tui.Run(mgr, collector, tui.Options{Version: "v1.2.0"}); err != nil {
 		fmt.Fprintf(os.Stderr, "demo tui: %v\n", err)
 		os.Exit(1)
 	}
@@ -263,6 +263,9 @@ func main() {
 func seedDemoAnalytics(root string) *analytics.Collector {
 	now := time.Now().UTC()
 	var claudeLines, codexLines, agyLines string
+	codexModels := []string{"gpt-6.1-sol", "gpt-6-astra"}
+	claudeModels := []string{"claude-opus-5-5", "claude-sonnet-5-5"}
+	agyModels := []string{"gemini-4-neon-medium", "claude-opus-5-5-medium"}
 	codexDaily := []struct {
 		daysAgo int
 		in      int64
@@ -280,9 +283,10 @@ func seedDemoAnalytics(root string) *analytics.Collector {
 	}
 	for i, d := range codexDaily {
 		ts := now.AddDate(0, 0, -d.daysAgo).Format(time.RFC3339)
-		codexLines += fmt.Sprintf(`{"timestamp":%q,"payload":{"info":{"last_token_usage":{"input_tokens":%d,"cached_input_tokens":%d,"output_tokens":%d}}}}`+"\n", ts, d.in, d.cache, d.out)
-		claudeLines += fmt.Sprintf(`{"timestamp":%q,"requestId":"req-%d","message":{"usage":{"input_tokens":%d,"output_tokens":%d,"cache_read_input_tokens":%d}}}`+"\n", ts, i, d.in/4, d.out/2, d.cache)
-		agyLines += fmt.Sprintf(`{"created_at":%q,"input_tokens":%d,"output_tokens":%d,"cache_read_tokens":%d}`+"\n", ts, d.in/8, d.out/3, d.cache/2)
+		codexLines += fmt.Sprintf(`{"timestamp":%q,"type":"turn_context","payload":{"model":%q}}`+"\n", ts, codexModels[i%len(codexModels)])
+		codexLines += fmt.Sprintf(`{"timestamp":%q,"type":"event_msg","payload":{"type":"token_count","info":{"last_token_usage":{"input_tokens":%d,"cached_input_tokens":%d,"output_tokens":%d}}}}`+"\n", ts, d.in, d.cache, d.out)
+		claudeLines += fmt.Sprintf(`{"timestamp":%q,"requestId":"req-%d","message":{"id":"msg-%d","model":%q,"usage":{"input_tokens":%d,"output_tokens":%d,"cache_read_input_tokens":%d}}}`+"\n", ts, i, i, claudeModels[i%len(claudeModels)], d.in/10, d.out/2, d.cache/2)
+		agyLines += fmt.Sprintf(`{"created_at":%q,"model":%q,"input_tokens":%d,"output_tokens":%d,"cache_read_tokens":%d}`+"\n", ts, agyModels[i%len(agyModels)], d.in/16, d.out/3, d.cache/4)
 	}
 	_ = fsutil.AtomicWriteFile(filepath.Join(root, "claude", "proj", "session.jsonl"), []byte(claudeLines), 0o600)
 	_ = fsutil.AtomicWriteFile(filepath.Join(root, "codex", "2026", "11", "22", "rollout.jsonl"), []byte(codexLines), 0o600)

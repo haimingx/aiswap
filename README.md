@@ -80,7 +80,7 @@ aiswap stats --days 7          # offline token usage from local logs (0 API call
 | `aiswap disable` / `enable <provider> <slot>` | Exclude or include a slot in `next` / `best` rotation |
 | `aiswap remove <provider> <slot>` | Remove a saved slot and its backup credential |
 | `aiswap models [provider]` | Live available models per active account (`--json`) |
-| `aiswap stats [--days 7\|30]` | Offline token usage (Input / Output / Cache Read) across all three tools (`--json`) |
+| `aiswap stats [--days 7\|30]` | Local-timezone token usage, model breakdown (`--breakdown`), and estimated cost (`--refresh-pricing`, `--json`) |
 | `aiswap completion <zsh\|bash\|fish>` | Generate shell completion script |
 | `aiswap doctor` / `upgrade` (`update`) | Environment health check and SHA256-verified self-upgrade |
 
@@ -93,8 +93,8 @@ Provider shorthands: `c` / `cc` (`claude`), `x` / `cx` (`codex`), `a` / `antigra
 | `1`–`6` / `Tab` | Switch views (`All`, `Claude`, `Codex`, `AGY`, `Stats`, `Models`; `u` → Stats, `m` → Models) |
 | `j` / `k` (`↑` / `↓`) | Select account (Accounts) or scroll viewport (Stats / Models) |
 | `Enter` | Switch to selected slot (or save current login if unsaved) |
-| `b` | Switch selected provider to `best` available slot |
-| `e` / `d` | Inline edit alias / toggle disable (in Stats, `d` toggles `7d` ↔ `30d`) |
+| `b` | Switch selected provider to `best` slot (in Stats, toggles model breakdown) |
+| `e` / `d` | Inline edit alias / toggle disable (in Stats, `d` toggles `7d` ↔ `30d`, `p` refreshes online pricing) |
 | `a` / `x` | Save current login / remove slot (inline `y/N` confirmation) |
 | `w` / `r` / `q` | Toggle Watch mode / force refresh / quit |
 
