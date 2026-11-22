@@ -1,0 +1,123 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-cli:
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: darwin
+            goarch: arm64
+          - goos: darwin
+            goarch: amd64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Cross-compile CLI
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: "0"
+        run: |
+          mkdir -p dist
+          VERSION="${GITHUB_REF_NAME}"
+          go build -ldflags "-s -w -X main.version=${VERSION}" -o dist/aiswap ./cmd/aiswap
+          tar -czf "dist/aiswap-${VERSION}-${GOOS}-${GOARCH}.tar.gz" -C dist aiswap
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cli-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/*.tar.gz
+
+  publish:
+    needs: [build-cli]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+      - name: Generate SHA256 checksums
+        run: |
+          cd release-assets
+          sha256sum *.tar.gz > checksums.txt
+          cat checksums.txt
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/*
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
+      - name: Update Homebrew tap
+        if: env.HOMEBREW_TAP_TOKEN != '' && !contains(github.ref_name, '-')
+        env:
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          VER="${TAG#v}"
+          SHA_DARWIN_ARM64="$(awk '$2 ~ /darwin-arm64\.tar\.gz$/ {print $1}' release-assets/checksums.txt)"
+          SHA_DARWIN_AMD64="$(awk '$2 ~ /darwin-amd64\.tar\.gz$/ {print $1}' release-assets/checksums.txt)"
+          SHA_LINUX_ARM64="$(awk '$2 ~ /linux-arm64\.tar\.gz$/ {print $1}' release-assets/checksums.txt)"
+          SHA_LINUX_AMD64="$(awk '$2 ~ /linux-amd64\.tar\.gz$/ {print $1}' release-assets/checksums.txt)"
+          for s in "$SHA_DARWIN_ARM64" "$SHA_DARWIN_AMD64" "$SHA_LINUX_ARM64" "$SHA_LINUX_AMD64"; do
+            test -n "$s" || { echo "Missing SHA256 in checksums.txt" >&2; exit 1; }
+          done
+
+          git clone "https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/haimingx/homebrew-tap.git" tap
+          mkdir -p tap/Formula
+          cat > tap/Formula/aiswap.rb <<EOF
+          class Aiswap < Formula
+            desc "Zero-proxy local account switcher, quota monitor, and TUI for Claude Code, Codex CLI, and Antigravity"
+            homepage "https://github.com/haimingx/aiswap"
+            version "${VER}"
+            license "MIT"
+
+            on_macos do
+              on_arm do
+                url "https://github.com/haimingx/aiswap/releases/download/${TAG}/aiswap-${TAG}-darwin-arm64.tar.gz"
+                sha256 "${SHA_DARWIN_ARM64}"
+              end
+              on_intel do
+                url "https://github.com/haimingx/aiswap/releases/download/${TAG}/aiswap-${TAG}-darwin-amd64.tar.gz"
+                sha256 "${SHA_DARWIN_AMD64}"
+              end
+            end
+
+            on_linux do
+              on_arm do
+                url "https://github.com/haimingx/aiswap/releases/download/${TAG}/aiswap-${TAG}-linux-arm64.tar.gz"
+                sha256 "${SHA_LINUX_ARM64}"
+              end
+              on_intel do
+                url "https://github.com/haimingx/aiswap/releases/download/${TAG}/aiswap-${TAG}-linux-amd64.tar.gz"
+                sha256 "${SHA_LINUX_AMD64}"
+              end
+            end
+
+            def install
+              bin.install "aiswap"
+            end
+
+            test do
+              assert_match version.to_s, shell_output("#{bin}/aiswap version")
+            end
+          end
+          EOF
+          cd tap
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula/aiswap.rb
+          git diff --cached --quiet || (git commit -m "chore(aiswap): bump to ${TAG}" && git push origin main)

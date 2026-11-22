@@ -1,0 +1,22 @@
+# Binaries
+/bin/
+/dist/
+/aiswap
+*.exe
+
+# Build / test artifacts
+*.test
+*.out
+coverage.html
+
+# macOS / Xcode
+.DS_Store
+macos/.build/
+macos/DerivedData/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+
+# IDE
+.idea/
+.vscode/
+*.swp

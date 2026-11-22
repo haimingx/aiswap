@@ -1,0 +1,35 @@
+name: Record Demo GIF
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Build static demo binary
+        env:
+          CGO_ENABLED: "0"
+        run: go build -o ./aiswap-demo ./scripts/demo
+      - name: Render docs/preview.gif with VHS
+        uses: charmbracelet/vhs-action@v2
+        with:
+          path: scripts/demo.tape
+      - name: Commit updated preview GIF
+        run: |
+          rm -f ./aiswap-demo docs/preview.svg
+          sed -i 's|docs/preview\.svg|docs/preview.gif|g' README.md
+          ls -lh docs/preview.gif
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/preview.gif README.md
+          git rm -f --ignore-unmatch docs/preview.svg
+          git diff --cached --quiet || (git commit -m "docs: replace static preview SVG with real TUI recording" && git push origin main)
