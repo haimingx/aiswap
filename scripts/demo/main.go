@@ -254,7 +254,7 @@ func main() {
 	seed(agyProv, []string{"me@gmail.com"})
 
 	collector := seedDemoAnalytics(filepath.Join(tmpDir, "logs"))
-	if err := tui.Run(mgr, collector, tui.Options{Version: "v1.2.0"}); err != nil {
+	if err := tui.Run(mgr, collector, tui.Options{Version: "v1.2.1"}); err != nil {
 		fmt.Fprintf(os.Stderr, "demo tui: %v\n", err)
 		os.Exit(1)
 	}
