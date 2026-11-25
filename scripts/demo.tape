@@ -11,7 +11,7 @@ Set Width 1260
 Set Height 640
 Set Padding 16
 Set Framerate 20
-Set Theme "TokyoNight"
+Set Theme { "name": "aiswap", "background": "#0E1412", "foreground": "#E6EEE9", "cursor": "#55E0A3", "selection": "#14261D", "black": "#0E1412", "red": "#F87171", "green": "#55E0A3", "yellow": "#FBBF24", "blue": "#60A5FA", "magenta": "#C084FC", "cyan": "#5EEAD4", "white": "#E6EEE9", "brightBlack": "#6B7280", "brightRed": "#FCA5A5", "brightGreen": "#CEE432", "brightYellow": "#FDE68A", "brightBlue": "#93C5FD", "brightMagenta": "#D8B4FE", "brightCyan": "#99F6E4", "brightWhite": "#FFFFFF" }
 Set WindowBar Colorful
 
 Hide

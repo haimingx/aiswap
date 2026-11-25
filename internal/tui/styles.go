@@ -8,13 +8,16 @@ import (
 )
 
 var (
-	colorAccent  = lipgloss.AdaptiveColor{Light: "#2563EB", Dark: "#60A5FA"}
-	colorSuccess = lipgloss.AdaptiveColor{Light: "#16A34A", Dark: "#4ADE80"}
-	colorWarn    = lipgloss.AdaptiveColor{Light: "#D97706", Dark: "#FBBF24"}
-	colorDanger  = lipgloss.AdaptiveColor{Light: "#DC2626", Dark: "#F87171"}
-	colorMuted   = lipgloss.AdaptiveColor{Light: "#6B7280", Dark: "#9CA3AF"}
-	colorBorder  = lipgloss.AdaptiveColor{Light: "#D1D5DB", Dark: "#374151"}
-	colorSelect  = lipgloss.AdaptiveColor{Light: "#EFF6FF", Dark: "#1E293B"}
+	// Emerald accent and lime success follow the logo palette; the light variants are
+	// darkened so text keeps at least 4.5:1 contrast on white terminals.
+	colorAccent   = lipgloss.AdaptiveColor{Light: "#087F4E", Dark: "#55E0A3"}
+	colorSuccess  = lipgloss.AdaptiveColor{Light: "#4D7C0F", Dark: "#CEE432"}
+	colorWarn     = lipgloss.AdaptiveColor{Light: "#D97706", Dark: "#FBBF24"}
+	colorDanger   = lipgloss.AdaptiveColor{Light: "#DC2626", Dark: "#F87171"}
+	colorMuted    = lipgloss.AdaptiveColor{Light: "#6B7280", Dark: "#9CA3AF"}
+	colorBorder   = lipgloss.AdaptiveColor{Light: "#D1D5DB", Dark: "#374151"}
+	colorSelect   = lipgloss.AdaptiveColor{Light: "#ECFDF5", Dark: "#14261D"}
+	colorOnAccent = lipgloss.AdaptiveColor{Light: "#FFFFFF", Dark: "#0E1412"}
 
 	styleTitle = lipgloss.NewStyle().
 			Bold(true).
@@ -25,7 +28,7 @@ var (
 
 	styleTabActive = lipgloss.NewStyle().
 			Bold(true).
-			Foreground(lipgloss.Color("#FFFFFF")).
+			Foreground(colorOnAccent).
 			Background(colorAccent).
 			Padding(0, 1)
 
@@ -49,7 +52,7 @@ var (
 
 	styleBadgeWatch = lipgloss.NewStyle().
 			Bold(true).
-			Foreground(lipgloss.Color("#FFFFFF")).
+			Foreground(colorOnAccent).
 			Background(colorSuccess).
 			Padding(0, 1)
 
