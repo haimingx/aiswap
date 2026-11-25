@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="as-top" x1="28" y1="30" x2="100" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#CEE432"/>
+      <stop offset="55%" stop-color="#81E828"/>
+      <stop offset="100%" stop-color="#55E0A3"/>
+    </linearGradient>
+    <linearGradient id="as-bot" x1="100" y1="70" x2="28" y2="98" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#55E0A3"/>
+      <stop offset="50%" stop-color="#38CF7A"/>
+      <stop offset="100%" stop-color="#0FA968"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="22" fill="#0E1412"/>
+  <rect x="1.5" y="1.5" width="125" height="125" rx="20.5" stroke="#E6EEE9" stroke-opacity="0.10" stroke-width="2"/>
+  <!-- Upper arc: rotate to the next account -->
+  <path d="M32.05 52.37A34 34 0 0 1 90.05 42.14" stroke="url(#as-top)" stroke-width="13"/>
+  <path d="M100.01 33.78L80.09 50.50L99 56Z" fill="url(#as-top)"/>
+  <!-- Lower arc: and back again -->
+  <path d="M95.95 75.63A34 34 0 0 1 37.95 85.86" stroke="url(#as-bot)" stroke-width="13"/>
+  <path d="M27.99 94.22L47.91 77.50L29 72Z" fill="url(#as-bot)"/>
+  <!-- Active account -->
+  <circle cx="64" cy="64" r="9" fill="#81E828"/>
+</svg>

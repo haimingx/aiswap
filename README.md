@@ -1,37 +1,39 @@
-<div align="center">
+<p align="center">
+  <img src="docs/logo.svg" alt="aiswap Logo" width="72" />
+</p>
 
 # aiswap
 
-**Zero-proxy local account switcher, quota monitor, and interactive TUI for Claude Code, Codex CLI, and Antigravity (`agy`).**
+Zero-proxy local account switcher, quota monitor, and interactive TUI for Claude Code, Codex CLI, and Antigravity (`agy`). Save each login to a slot, switch in one command, and watch live `5h` / `7d` quotas and token usage from a single static Go binary.
 
-[![Release](https://img.shields.io/github/v/release/haimingx/aiswap?style=flat-square&color=2563eb)](https://github.com/haimingx/aiswap/releases/latest)
+*Zero proxy. Zero traffic interception. Config swap only.*
+
+[![Release](https://img.shields.io/github/v/release/haimingx/aiswap?style=flat-square&color=0fa968)](https://github.com/haimingx/aiswap/releases/latest)
 [![CI](https://img.shields.io/github/actions/workflow/status/haimingx/aiswap/ci.yml?branch=main&style=flat-square&label=CI)](https://github.com/haimingx/aiswap/actions/workflows/ci.yml)
 [![Go](https://img.shields.io/github/go-mod/go-version/haimingx/aiswap?style=flat-square&color=00add8)](go.mod)
 [![License](https://img.shields.io/github/license/haimingx/aiswap?style=flat-square)](LICENSE)
 
-<br/>
+[Releases](https://github.com/haimingx/aiswap/releases) · [Install](#-install) · [Quickstart](#-quickstart) · [Commands](#-commands) · [Documentation](#-documentation) · [Report an Issue](https://github.com/haimingx/aiswap/issues)
 
-<img src="docs/preview.gif" alt="aiswap interactive TUI dashboard" width="880" />
+<p align="center">
+  <img src="docs/preview.gif" alt="aiswap interactive TUI dashboard" width="880" />
+</p>
 
-</div>
+## <img src="docs/icons/lightbulb.svg" width="22" height="22" style="vertical-align: middle; margin-right: 4px;" /> Why aiswap
 
----
+- **Zero proxy, config swap only**: swaps local credentials and config snapshots directly. No local HTTP proxy, no traffic interception, no third-party relay.
+- **One static binary, three tools**: manage accounts, live `5h` / `7d` shared-pool quotas, available models, and offline token stats for `claude`, `codex`, and `agy` in a single ~7 MB Go binary.
+- **Crash-safe &amp; rate-limit aware**: follows each tool's native lock protocol, preserves machine-shared keys (e.g., Claude `mcpOAuth`), rolls back failed switches, protects one-time OAuth refresh tokens, and uses a leased cache to prevent 429 bursts.
 
-## Why aiswap
+## <img src="docs/icons/download.svg" width="22" height="22" style="vertical-align: middle; margin-right: 4px;" /> Install
 
-- **Zero proxy, config swap only** — Swaps local credentials and config snapshots directly. No local HTTP proxy, no traffic interception, no third-party relay.
-- **One static binary, three tools** — Manage accounts, live `5h` / `7d` shared-pool quotas, available models, and offline token stats for `claude`, `codex`, and `agy` in a single ~7 MB Go binary.
-- **Crash-safe & rate-limit aware** — Follows each tool's native lock protocol, preserves machine-shared keys (e.g., Claude `mcpOAuth`), rolls back failed switches, protects one-time OAuth refresh tokens, and uses a leased cache to prevent 429 bursts.
-
-## Install
-
-### Homebrew (macOS & Linux)
+**Homebrew (macOS &amp; Linux):**
 
 ```bash
 brew install haimingx/tap/aiswap
 ```
 
-### Shell installer (macOS & Linux)
+**Shell installer (macOS &amp; Linux):**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/haimingx/aiswap/main/scripts/install.sh | bash
@@ -39,13 +41,12 @@ curl -fsSL https://raw.githubusercontent.com/haimingx/aiswap/main/scripts/instal
 
 Verifies SHA256 checksums automatically. On macOS, installs into a writable `PATH` directory (`/opt/homebrew/bin` → `/usr/local/bin` → `~/.local/bin`), clears Gatekeeper quarantine, and applies an ad-hoc signature.
 
-### From source
+<details>
+<summary><strong>From source, upgrade &amp; diagnostics</strong></summary>
 
 ```bash
-make install   # builds and installs to ~/.local/bin/aiswap
+make install          # builds and installs to ~/.local/bin/aiswap
 ```
-
-### Upgrade & diagnostics
 
 ```bash
 brew upgrade aiswap   # if installed via Homebrew
@@ -53,7 +54,9 @@ aiswap upgrade        # if installed via install.sh (alias: aiswap update)
 aiswap doctor
 ```
 
-## Quick Start
+</details>
+
+## <img src="docs/icons/terminal.svg" width="22" height="22" style="vertical-align: middle; margin-right: 4px;" /> Quickstart
 
 ```bash
 aiswap                         # open interactive TUI dashboard (TTY)
@@ -66,10 +69,10 @@ aiswap models                  # live available models grouped by shared pool
 aiswap stats --days 7          # offline token usage from local logs (0 API calls)
 ```
 
-## Commands
+## <img src="docs/icons/code.svg" width="22" height="22" style="vertical-align: middle; margin-right: 4px;" /> Commands
 
 | Command | Description |
-|---|---|
+| :--- | :--- |
 | `aiswap` / `aiswap tui` | Full-screen Bubble Tea dashboard (3-column panoramic layout on wide terminals) |
 | `aiswap watch` | Live quota monitor with refresh countdown and in-place switching |
 | `aiswap status [provider]` | Active accounts, subscription plans, and live quotas (`--refresh`, `--no-quota`, `--json`) |
@@ -86,10 +89,10 @@ aiswap stats --days 7          # offline token usage from local logs (0 API call
 
 Provider shorthands: `c` / `cc` (`claude`), `x` / `cx` (`codex`), `a` / `antigravity` (`agy`).
 
-## TUI Shortcuts
+## <img src="docs/icons/keyboard.svg" width="22" height="22" style="vertical-align: middle; margin-right: 4px;" /> TUI Shortcuts
 
 | Key | Action |
-|---|---|
+| :--- | :--- |
 | `1`–`6` / `Tab` | Switch views (`All`, `Claude`, `Codex`, `AGY`, `Stats`, `Models`; `u` → Stats, `m` → Models) |
 | `j` / `k` (`↑` / `↓`) | Select account (Accounts) or scroll viewport (Stats / Models) |
 | `Enter` | Switch to selected slot (or save current login if unsaved) |
@@ -98,33 +101,33 @@ Provider shorthands: `c` / `cc` (`claude`), `x` / `cx` (`codex`), `a` / `antigra
 | `a` / `x` | Save current login / remove slot (inline `y/N` confirmation) |
 | `w` / `r` / `q` | Toggle Watch mode / force refresh / quit |
 
-## Offline Token Stats
+## <img src="docs/icons/chart.svg" width="22" height="22" style="vertical-align: middle; margin-right: 4px;" /> Offline Token Stats
 
 `aiswap stats` (and TUI `5 Stats`) aggregates local token usage (`Requests`, `Input`, `Output`, `Cache Read`) with **zero API calls** by scanning each tool's local JSONL session logs on the current machine:
 
 | Provider | Local Log Path |
-|---|---|
+| :--- | :--- |
 | **Claude Code** | `${CLAUDE_CONFIG_DIR:-~/.claude}/projects/*/*.jsonl` |
 | **Codex CLI** | `${CODEX_HOME:-~/.codex}/sessions/*/*/*/*.jsonl` |
 | **Antigravity** | `${AGY_DATA_DIR:-~/.gemini/antigravity-cli}/brain/*/.system_generated/logs/transcript.jsonl` + `~/.gemini/antigravity/brain/*/.system_generated/logs/transcript.jsonl` (CLI + IDE) |
 
 Stats reflect local coding CLI / Agent activity only (IDE extensions sharing those directories are included automatically; standalone web/desktop chat apps are out of scope).
 
-## Data Locations
+## <img src="docs/icons/folder.svg" width="22" height="22" style="vertical-align: middle; margin-right: 4px;" /> Data Locations
 
-| Platform | Backup Credentials | State & Cache |
-|---|---|---|
+| Platform | Backup Credentials | State &amp; Cache |
+| :--- | :--- | :--- |
 | macOS | macOS Keychain (`aiswap.<provider>`) | `~/Library/Application Support/aiswap/` |
 | Linux | `0600` files under `credentials/` | `${XDG_DATA_HOME:-~/.local/share}/aiswap/` |
 
 Override the data directory with `AISWAP_DATA_DIR`.
 
-## Documentation
+## <img src="docs/icons/book.svg" width="22" height="22" style="vertical-align: middle; margin-right: 4px;" /> Documentation
 
 - [Architecture](docs/architecture.md) — module boundaries, lock order, and invariants
 - [Providers](docs/providers.md) — credential schemas, native locks, and quota/model endpoints
 - [JSON Contract](docs/json-contract.md) — versioned `--json` payloads (`schemaVersion: 1`)
 
-## License
+## <img src="docs/icons/file-text.svg" width="22" height="22" style="vertical-align: middle; margin-right: 4px;" /> License
 
-[MIT](LICENSE)
+[MIT](LICENSE).
